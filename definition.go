@@ -1320,3 +1320,26 @@ func (p *ResponsePath) AsArray() []interface{} {
 	}
 	return append(p.Prev.AsArray(), p.Key)
 }
+
+func GetIntrospectionTypes() []Type {
+	return []Type{
+		SchemaType,
+		DirectiveType,
+		DirectiveLocationEnumType,
+		TypeType,
+		FieldType,
+		InputValueType,
+		EnumValueType,
+		TypeKindEnumType,
+	}
+}
+
+func getSpecifiedScalarTypes() []Type {
+	return []Type{
+		String,
+		Int,
+		Float,
+		Boolean,
+		ID,
+	}
+}
