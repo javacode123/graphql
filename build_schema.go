@@ -300,28 +300,20 @@ func (c *SchemaConfigBuilder) buildType(astNode interface{}) (interface{}, error
 		}), nil
 
 	case *ast.InputObjectDefinition:
-		inputFieldMap := map[string]*InputObjectField{}
-		for _, field := range node.Fields {
-			fieldType, _ := c.getWrappedType(field.Type)
-			if castedField, ok := fieldType.(Input); ok {
-				description := ""
-				if node.Description != nil {
-					description = node.Description.Value
-				}
+		description := ""
+		if node.Description != nil {
+			description = node.Description.Value
+		}
 
-				inputFieldMap[field.Name.Value] = &InputObjectField{
-					PrivateName:        field.Name.Value,
-					PrivateDescription: description,
-					Type:               castedField,
-					DefaultValue:       valueFromAST(field.DefaultValue, castedField, nil),
-				}
-			}
+		fieldsThunk, err := c.buildInputObjectFieldsThunk(node)
+		if err != nil {
+			return nil, err
 		}
 
 		return NewInputObject(InputObjectConfig{
 			Name:        node.Name.Value,
-			Description: node.Description.Value,
-			Fields:      inputFieldMap,
+			Description: description,
+			Fields:      fieldsThunk,
 		}), nil
 	}
 
@@ -414,6 +406,28 @@ func (c *SchemaConfigBuilder) buildFieldsThunk(astNode interface{}) (FieldsThunk
 		}
 
 		return fields
+	}, nil
+}
+
+func (c *SchemaConfigBuilder) buildInputObjectFieldsThunk(node *ast.InputObjectDefinition) (InputObjectConfigFieldMapThunk, error) {
+	return func() InputObjectConfigFieldMap {
+		inputFieldMap := InputObjectConfigFieldMap{}
+		for _, field := range node.Fields {
+			fieldType, _ := c.getWrappedType(field.Type)
+			if castedField, ok := fieldType.(Input); ok {
+				description := ""
+				if node.Description != nil {
+					description = node.Description.Value
+				}
+
+				inputFieldMap[field.Name.Value] = &InputObjectFieldConfig{
+					Type:         castedField,
+					DefaultValue: valueFromAST(field.DefaultValue, castedField, nil),
+					Description:  description,
+				}
+			}
+		}
+		return inputFieldMap
 	}, nil
 }
 

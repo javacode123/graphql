@@ -296,15 +296,15 @@ func TestBuildAstSchema_MultiValueEnum(t *testing.T) {
 
 func TestBuildAstSchema_SimpleUnion(t *testing.T) {
 	sdl := `
-		union Hello = World
+	  union Hello = World
 
-		type Query {
-			hello: Hello
-		}
+	  type Query {
+	    hello: Hello
+	  }
 
-		type World {
-			str: String
-		}
+	  type World {
+	    str: String
+	  }
 	`
 
 	_, err := graphql.BuildSchema(sdl)
@@ -316,19 +316,19 @@ func TestBuildAstSchema_SimpleUnion(t *testing.T) {
 
 func TestBuildAstSchema_MultipleUnion(t *testing.T) {
 	sdl := `
-		union Hello = WorldOne | WorldTwo
+	  union Hello = WorldOne | WorldTwo
 
-		type Query {
-			hello: Hello
-		}
+	  type Query {
+	    hello: Hello
+	  }
 
-		type WorldOne {
-			str: String
-		}
+	  type WorldOne {
+	    str: String
+	  }
 
-		type WorldTwo {
-			str: String
-		}
+	  type WorldTwo {
+	    str: String
+	  }
 	`
 	_, err := graphql.BuildSchema(sdl)
 
@@ -353,6 +353,44 @@ func TestBuildAstSchema_CustomScalar(t *testing.T) {
 
 	if schema.Type("CustomScalar") == nil {
 		t.Fatal("No CustomScalar type")
+	}
+}
+
+func TestBuildAstSchema_SimpleInputObject(t *testing.T) {
+	sdl := `
+	  input Input {
+		  int: Int
+	  }
+
+	  type Query {
+		  field(in: Input): String
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestBuildAstSchema_InputWithEnumList(t *testing.T) {
+	sdl := `
+    type Query {
+	    queryWithInput(filter: FilterInput): String
+    }
+
+	  enum Values {
+		  A
+		  B
+		  C
+	  }
+
+	  input FilterInput {
+		  values: [Values!]
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
 	}
 }
 
