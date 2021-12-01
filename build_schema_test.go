@@ -545,3 +545,19 @@ func TestEmptyEnum(t *testing.T) {
 		t.Fatalf("Unexpected error %s", err.Error())
 	}
 }
+
+func TestEmptyInputObject(t *testing.T) {
+	t.Skip("graphql-go does not support empty types")
+
+	sdl := `
+	  input Input
+
+	  type Query {
+		  field: String
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
