@@ -88,6 +88,8 @@ func (c *SchemaConfigBuilder) buildSchemaConfig(documentAST *ast.Document) (*Sch
 			extendedTypeName := node.Definition.Name.Value
 			if v, ok := c.typeExtensionsMap[extendedTypeName]; ok {
 				c.typeExtensionsMap[extendedTypeName] = append(v, node)
+			} else {
+				c.typeExtensionsMap[extendedTypeName] = []*ast.TypeExtensionDefinition{node}
 			}
 		case *ast.DirectiveDefinition:
 			directiveDefs = append(directiveDefs, node)

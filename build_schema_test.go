@@ -498,6 +498,67 @@ func TestSpecifiedByDirective(t *testing.T) {
 	t.Skip("TODO")
 }
 
+func TestExtendType(t *testing.T) {
+	// t.Skip("Doesn't work?")
+	sdl := `
+	  type Query {
+		  obj: SomeObject
+	  }
+
+	  type SomeObject implements Foo {
+		  first: String
+	  }
+
+	  extend type SomeObject implements Bar {
+		  second: Int
+	  }
+
+	  extend type SomeObject implements Baz {
+		  third: Float
+	  }
+
+	  interface Foo {
+			first: String
+		}
+    interface Bar {
+			second: Int
+		}
+    interface Baz {
+			third: Float
+		}
+	`
+	schema, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+
+	someType := schema.Type("SomeObject")
+	if someObject, ok := someType.(*graphql.Object); !ok {
+		t.Fatal("SomeObject is not an Object type")
+	} else {
+		firstField, ok := someObject.Fields()["first"]
+		if !ok {
+			t.Fatal("SomeObject does not have field 'first'")
+		} else if firstField.Type.Name() != "String" {
+			t.Fatalf("SomeObject field 'first' has type %s", firstField.Type.Name())
+		}
+
+		secondField, ok := someObject.Fields()["second"]
+		if !ok {
+			t.Fatal("SomeObject does not have field 'second'")
+		} else if secondField.Type.Name() != "Int" {
+			t.Fatalf("SomeObject field 'second' has type %s", firstField.Type.Name())
+		}
+
+		thirdField, ok := someObject.Fields()["third"]
+		if !ok {
+			t.Fatal("SomeObject does not have field 'third'")
+		} else if thirdField.Type.Name() != "Float" {
+			t.Fatalf("SomeObject field 'third' has type %s", firstField.Type.Name())
+		}
+	}
+}
+
 // TODO: Add more tests from graphql-js
 
 ///////// Tests in graphql-js that do not pass because of graphql-go :(
@@ -555,6 +616,24 @@ func TestEmptyInputObject(t *testing.T) {
 	  type Query {
 		  field: String
 	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestExtendScalar(t *testing.T) {
+	t.Skip("graphql-go does not support extending scalars")
+	sdl := `
+    scalar SomeScalar
+
+	  extend scalar SomeScalar @foo
+
+	  extend scalar SomeScalar @bar
+
+	  directive @foo on SCALAR
+	  directive @bar on SCALAR
 	`
 	_, err := graphql.BuildSchema(sdl)
 	if err != nil {
