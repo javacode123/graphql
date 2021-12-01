@@ -158,6 +158,23 @@ func (c *SchemaConfigBuilder) buildSchemaConfig(documentAST *ast.Document) (*Sch
 		// TODO (ECO-3254): Add subscriptions (not urgent because subscriptions are not in federation and we don't use them at Square)
 	}
 
+	// If there is a top-level schema definition, replace the Query/Mutation/Subscription types with those specified
+	if schemaDef != nil {
+		schemaOperationTypes, err := c.getSchemaOperationTypes(schemaDef)
+		if err != nil {
+			return nil, err
+		}
+		if schemaOperationTypes.Query != nil {
+			schemaConfig.Query = schemaOperationTypes.Query
+		}
+		if schemaOperationTypes.Mutation != nil {
+			schemaConfig.Mutation = schemaOperationTypes.Mutation
+		}
+		if schemaOperationTypes.Subscription != nil {
+			schemaConfig.Subscription = schemaOperationTypes.Subscription
+		}
+	}
+
 	// Convert ast.DirectiveDefinitions to Directive types
 	schemaConfig.Directives = []*Directive{}
 	for _, d := range directiveDefs {
@@ -463,6 +480,35 @@ func (c *SchemaConfigBuilder) buildFieldMap(fieldDefs []*ast.FieldDefinition) (F
 	}
 
 	return fields, nil
+}
+
+type SchemaOperations struct {
+	Query        *Object
+	Mutation     *Object
+	Subscription *Object
+}
+
+func (c *SchemaConfigBuilder) getSchemaOperationTypes(node *ast.SchemaDefinition) (SchemaOperations, error) {
+	schemaOperations := SchemaOperations{}
+	if node.OperationTypes != nil {
+		for _, operationType := range node.OperationTypes {
+			ttype, err := c.getNamedType(operationType.Type.Name.Value)
+			if err != nil {
+				return schemaOperations, err
+			}
+
+			objectType, ok := ttype.(*Object)
+			if ok {
+				if operationType.Operation == "query" {
+					schemaOperations.Query = objectType
+				} else if operationType.Operation == "mutation" {
+					schemaOperations.Mutation = objectType
+				}
+				// TODO (ECO-3254): Add subscriptions (not urgent because subscriptions are not in federation and we don't use them at Square)
+			}
+		}
+	}
+	return schemaOperations, nil
 }
 
 // Given a type's name, retrieves the type from the SchemaConfigBuilder's typeMap and returns it as a Named type

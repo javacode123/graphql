@@ -437,6 +437,67 @@ func TestCustomScalarArgumentWithDefault(t *testing.T) {
 	}
 }
 
+func TestSimpleTypeWithMutation(t *testing.T) {
+	sdl := `
+	  schema {
+		  query: HelloScalars
+		  mutation: Mutation
+	  }
+
+	  type HelloScalars {
+		  str: String
+		  int: Int
+		  bool: Boolean
+	  }
+
+	  type Mutation {
+		  addHelloScalars(str: String, int: Int, bool: Boolean): HelloScalars
+	  }
+	`
+
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestUnreferencedTypeImplementingReferencedInterface(t *testing.T) {
+	sdl := `
+	  type Concrete implements Interface {
+		  key: String
+	  }
+
+	   interface Interface {
+		   key: String
+	  }
+
+	  type Query {
+		  interface: Interface
+	  }
+  `
+
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestUnreferencedInterfaceImplementingReferencedInterface(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestUnreferencedTypeImplementingReferencedUnion(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestDeprecatedDirective(t *testing.T) {
+	t.Skip("TODO")
+}
+
+func TestSpecifiedByDirective(t *testing.T) {
+	t.Skip("TODO")
+}
+
 // TODO: Add more tests from graphql-js
 
 ///////// Tests in graphql-js that do not pass because of graphql-go :(
