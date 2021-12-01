@@ -6,7 +6,7 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-func TestBuildAstSchema_SimpleTypes(t *testing.T) {
+func TestSimpleTypes(t *testing.T) {
 	sdl := `
 		type Query {
 			str: String
@@ -57,7 +57,7 @@ func TestBuildAstSchema_SimpleTypes(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_ExcludedStandardTypes(t *testing.T) {
+func TestExcludedStandardTypes(t *testing.T) {
 	schema, err := graphql.BuildSchema("type Query { str: String }")
 	if err != nil {
 		t.Fatalf("Unexpected error %v", err)
@@ -79,7 +79,7 @@ func TestBuildAstSchema_ExcludedStandardTypes(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_Directives(t *testing.T) {
+func TestDirectives(t *testing.T) {
 	sdl := `
 		directive @foo(arg: Int) on FIELD
 
@@ -115,7 +115,7 @@ func TestBuildAstSchema_Directives(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_TypeModifiers(t *testing.T) {
+func TestTypeModifiers(t *testing.T) {
 	sdl := `
 		type Query {
 			nonNullStr: String!
@@ -182,7 +182,7 @@ func TestBuildAstSchema_TypeModifiers(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_RecursiveType(t *testing.T) {
+func TestRecursiveType(t *testing.T) {
 	sdl := `
 		type Query {
 			str: String
@@ -195,7 +195,7 @@ func TestBuildAstSchema_RecursiveType(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_TwoCircularTypes(t *testing.T) {
+func TestTwoCircularTypes(t *testing.T) {
 	sdl := `
 		type Query {
 			str: String
@@ -213,7 +213,7 @@ func TestBuildAstSchema_TwoCircularTypes(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_SimpleTypeWithInterface(t *testing.T) {
+func TestSimpleTypeWithInterface(t *testing.T) {
 	sdl := `
 		type Query implements WorldInterface {
 			str: String
@@ -231,7 +231,7 @@ func TestBuildAstSchema_SimpleTypeWithInterface(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_SimpleOutputEnum(t *testing.T) {
+func TestSimpleOutputEnum(t *testing.T) {
 	sdl := `
 		enum Hello {
 			WORLD
@@ -260,7 +260,7 @@ func TestBuildAstSchema_SimpleOutputEnum(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_MultiValueEnum(t *testing.T) {
+func TestMultiValueEnum(t *testing.T) {
 	sdl := `
 		enum Hello {
 			WO
@@ -294,7 +294,7 @@ func TestBuildAstSchema_MultiValueEnum(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_SimpleUnion(t *testing.T) {
+func TestSimpleUnion(t *testing.T) {
 	sdl := `
 	  union Hello = World
 
@@ -314,7 +314,7 @@ func TestBuildAstSchema_SimpleUnion(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_MultipleUnion(t *testing.T) {
+func TestMultipleUnion(t *testing.T) {
 	sdl := `
 	  union Hello = WorldOne | WorldTwo
 
@@ -337,7 +337,7 @@ func TestBuildAstSchema_MultipleUnion(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_CustomScalar(t *testing.T) {
+func TestCustomScalar(t *testing.T) {
 	sdl := `
 		scalar CustomScalar
 
@@ -356,7 +356,7 @@ func TestBuildAstSchema_CustomScalar(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_SimpleInputObject(t *testing.T) {
+func TestSimpleInputObject(t *testing.T) {
 	sdl := `
 	  input Input {
 		  int: Int
@@ -372,7 +372,7 @@ func TestBuildAstSchema_SimpleInputObject(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_InputWithEnumList(t *testing.T) {
+func TestInputWithEnumList(t *testing.T) {
 	sdl := `
     type Query {
 	    queryWithInput(filter: FilterInput): String
@@ -398,8 +398,8 @@ func TestBuildAstSchema_InputWithEnumList(t *testing.T) {
 
 ///////// Tests in graphql-js that do not pass because of graphql-go :(
 
-func TestBuildAstSchema_SimpleInterfaceHierarchy(t *testing.T) {
-	t.Skip("graphql-go does not support interfaces implementing interfaces")
+func TestSimpleInterfaceHierarchy(t *testing.T) {
+	t.Skip("graphql-go does not support interface 'implements'")
 
 	sdl := `
 		schema {
@@ -425,7 +425,7 @@ func TestBuildAstSchema_SimpleInterfaceHierarchy(t *testing.T) {
 	}
 }
 
-func TestBuildAstSchema_EmptyEnum(t *testing.T) {
+func TestEmptyEnum(t *testing.T) {
 	t.Skip("graphql-go does not support empty types")
 
 	sdl := `
