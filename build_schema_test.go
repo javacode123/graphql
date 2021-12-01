@@ -413,6 +413,30 @@ func TestSimpleArgumentFieldWithDefault(t *testing.T) {
 	}
 }
 
+func TestCustomScalarArgumentWithDefault(t *testing.T) {
+	sdl := `
+	  scalar CustomScalar
+
+	  type Query {
+		 str(int: CustomScalar = 2): String
+	  }
+  `
+	schema, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+
+	queryField := schema.QueryType().Fields()["str"]
+	if len(queryField.Args) != 1 {
+		t.Fatalf("Query field has %v instead of 1 argrument", len(queryField.Args))
+	} else {
+		arg := queryField.Args[0]
+		if arg.Name() != "int" || arg.Type.Name() != "CustomScalar" || arg.DefaultValue != 2 {
+			t.Fatalf("Unexpected field argument '%v' of type '%v' with default value '%v'", arg.Name(), arg.Type.Name(), arg.DefaultValue)
+		}
+	}
+}
+
 // TODO: Add more tests from graphql-js
 
 ///////// Tests in graphql-js that do not pass because of graphql-go :(

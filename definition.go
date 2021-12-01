@@ -282,7 +282,7 @@ func (st *Scalar) ParseValue(value interface{}) interface{} {
 }
 func (st *Scalar) ParseLiteral(valueAST ast.Value) interface{} {
 	if st.scalarConfig.ParseLiteral == nil {
-		return nil
+		return valueFromASTUntyped(valueAST, map[string]interface{}{})
 	}
 	return st.scalarConfig.ParseLiteral(valueAST)
 }
