@@ -1,6 +1,7 @@
 package graphql_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/graphql-go/graphql"
@@ -283,13 +284,10 @@ func TestMultiValueEnum(t *testing.T) {
 	} else if len(enumType.Values()) != 2 {
 		t.Fatalf("Enum has %d values instead of 1", len(enumType.Values()))
 	} else {
-		firstValue := enumType.Values()[0]
-		if firstValue.Name != "WO" {
-			t.Fatalf("Enum value is '%s', not 'WO'", firstValue.Name)
-		}
-		secondValue := enumType.Values()[1]
-		if secondValue.Name != "RLD" {
-			t.Fatalf("Enum value is '%s', not 'RLD'", firstValue.Name)
+		enumNames := []string{enumType.Values()[0].Name, enumType.Values()[1].Name}
+		if !(reflect.DeepEqual(enumNames, []string{"WO", "RLD"}) ||
+			reflect.DeepEqual(enumNames, []string{"RLD", "WO"})) {
+			t.Fatalf("Enum values are %v, not 'WO' and 'RLD'", enumNames)
 		}
 	}
 }
