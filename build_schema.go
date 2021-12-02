@@ -505,8 +505,9 @@ func (c *SchemaConfigBuilder) getSchemaOperationTypes(node *ast.SchemaDefinition
 					schemaOperations.Query = objectType
 				} else if operationType.Operation == "mutation" {
 					schemaOperations.Mutation = objectType
+				} else if operationType.Operation == "subscription" {
+					schemaOperations.Subscription = objectType
 				}
-				// TODO (ECO-3254): Add subscriptions (not urgent because subscriptions are not in federation and we don't use them at Square)
 			}
 		}
 	}
