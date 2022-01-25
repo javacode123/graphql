@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/graphql-go/graphql/language/kinds"
 	"github.com/graphql-go/graphql/language/parser"
 )
 
@@ -28,6 +29,9 @@ func BuildSchema(source string) (*Schema, error) {
 }
 
 func BuildAstSchema(documentNode *ast.Document) (*Schema, error) {
+	if documentNode == nil || documentNode.Kind != kinds.Document {
+		return nil, errors.New("Must provide valid Document AST.")
+	}
 	// Get standard types we want in the schema
 	stdTypeMap := map[string]Type{}
 	for _, ttype := range append(GetIntrospectionTypes(), getSpecifiedScalarTypes()...) {

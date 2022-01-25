@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
 )
 
 func TestSimpleTypes(t *testing.T) {
@@ -559,6 +560,138 @@ func TestExtendType(t *testing.T) {
 	}
 }
 
+func TestCustomRootOperationNames(t *testing.T) {
+	sdl := `
+	  schema {
+		  query: SomeQuery
+		  mutation: SomeMutation
+		  subscription: SomeSubscription
+	  }
+	  type SomeQuery {
+		  str: String
+	  }
+    type SomeMutation {
+		  str: String
+	  }
+    type SomeSubscription {
+		  str: String
+	  }
+	`
+	schema, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+
+	if schema.QueryType().Name() != "SomeQuery" {
+		t.Fatalf("Query type is named '%s', not 'SomeQuery'", schema.QueryType().Name())
+	}
+	if schema.MutationType().Name() != "SomeMutation" {
+		t.Fatalf("Mutation type is named '%s', not 'SomeMutation'", schema.MutationType().Name())
+	}
+	// if schema.SubscriptionType().Name() != "SomeSubscription" {
+	// 	t.Fatalf("Subscription type is named '%s', not 'Subscription'", schema.SubscriptionType().Name())
+	// }
+}
+
+func TestDefaultRootOperationNames(t *testing.T) {
+	sdl := `
+	  type Query {
+		  str: String
+	  }
+    type Mutation {
+		  str: String
+	  }
+    type Subscription {
+		  str: String
+	  }
+	`
+	schema, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+
+	if schema.QueryType().Name() != "Query" {
+		t.Fatalf("Query type is named '%s', not 'Query'", schema.QueryType().Name())
+	}
+	if schema.MutationType().Name() != "Mutation" {
+		t.Fatalf("Mutation type is named '%s', not 'Mutation'", schema.MutationType().Name())
+	}
+	// if schema.SubscriptionType().Name() != "Subscription" {
+	// 	t.Fatalf("Subscription type is named '%s', not 'Subscription'", schema.SubscriptionType().Name())
+	// }
+}
+
+func TestNotOverrideStandardType(t *testing.T) {
+	// (from graphql-js) NOTE: not sure it's desired behaviour to just silently ignore override
+	// attempts so just documenting it here.
+	sdl := `
+	  type Query {
+		  id: ID
+	  }
+
+		scalar ID
+
+    scalar __Schema
+	`
+	schema, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+	if schema.Type("ID") != graphql.ID {
+		t.Fatalf("ID type was overridden")
+	}
+	if schema.Type("__Schema") != graphql.SchemaType {
+		t.Fatalf("__Schema type was overridden")
+	}
+}
+
+func TestReferenceIntrospectiveTypes(t *testing.T) {
+	sdl := `
+	  type Query {
+		  introspectionField: __EnumValue
+	  }
+	`
+	schema, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+
+	field := schema.QueryType().Fields()["introspectionField"]
+	if field.Type != graphql.EnumValueType {
+		t.Fatalf("Query.introspectionField is not introspection type __EnumValue")
+	}
+	if schema.Type("__EnumValue") != graphql.EnumValueType {
+		t.Fatalf("__EnumValue type was overridden")
+	}
+}
+
+func TestPanicsOnUnknownTypes(t *testing.T) {
+	sdl := `
+	  type Query {
+		  unknown: UnknownType
+	  }
+  `
+	// No need to check whether `recover()` is nil. Just turn off the panic.
+	defer func() { recover() }()
+
+	graphql.BuildSchema(sdl)
+
+	// Never reaches here if `graphql.BuildSchema(sdl)` panics.
+	t.Fatalf("Did not panic")
+}
+
+func TestRejectsInvalidAst(t *testing.T) {
+	_, err := graphql.BuildAstSchema(nil)
+	if err.Error() != "Must provide valid Document AST." {
+		t.Fatalf("Got different error %v:", err)
+	}
+
+	_, err = graphql.BuildAstSchema(&ast.Document{})
+	if err.Error() != "Must provide valid Document AST." {
+		t.Fatalf("Got different error %v:", err)
+	}
+}
+
 // TODO: Add more tests from graphql-js
 
 ///////// Tests in graphql-js that do not pass because of graphql-go :(
@@ -623,6 +756,94 @@ func TestEmptyInputObject(t *testing.T) {
 	}
 }
 
+func TestExtendInterface(t *testing.T) {
+	t.Skip("graphql-go parser.Parse does not support extending interfaces")
+	sdl := `
+	  union SomeUnion = FirstType
+
+	  extend union SomeUnion = SecondType
+
+	  extend union SomeUnion = ThirdType
+
+		type FirstType {
+			first: String
+		}
+    type SecondType {
+			second: Int
+		}
+    type ThirdType {
+			third: Float
+		}
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestExtendUnion(t *testing.T) {
+	t.Skip("graphql-go parser.Parse does not support extending unions")
+	sdl := `
+	  interface SomeInterface {
+		  first: String
+	  }
+
+	  extend interface SomeInterface {
+		  second: Int
+	  }
+
+	  extend interface SomeInterface {
+		  third: Float
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestExtendEnum(t *testing.T) {
+	t.Skip("graphql-go parser.Parse does not support extending enums")
+	sdl := `
+	  enum SomeEnum {
+		  FIRST
+	  }
+
+	  extend enum SomeEnum {
+		  SECOND
+	  }
+
+	  extend enum SomeEnum {
+		  THIRD
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestExtendInputType(t *testing.T) {
+	t.Skip("graphql-go parser.Parse does not support extending input types")
+	sdl := `
+	  input SomeInput {
+		  first: String
+	  }
+
+	  extend input SomeInput {
+		  second: Int
+	  }
+
+	  extend input SomeInput {
+		  third: Float
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
 func TestExtendScalar(t *testing.T) {
 	t.Skip("graphql-go does not support extending scalars")
 	sdl := `
@@ -638,5 +859,36 @@ func TestExtendScalar(t *testing.T) {
 	_, err := graphql.BuildSchema(sdl)
 	if err != nil {
 		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestAssigningAstNodes(t *testing.T) {
+	t.Skip("The graphql definitions do not have fields for astNodes")
+}
+
+func TestBuildInvalidSchema(t *testing.T) {
+	t.Skip("graphql.NewSchema does not allow nil Query type")
+	sdl := `
+    type Mutation {
+		  str: String
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err != nil {
+		t.Fatalf("Unexpected error %s", err.Error())
+	}
+}
+
+func TestRejectsInvalidSdl(t *testing.T) {
+	t.Skip("graphql-go does not have ValidateSdl function")
+
+	sdl := `
+	  type Query {
+		  foo: String @unknown
+	  }
+	`
+	_, err := graphql.BuildSchema(sdl)
+	if err == nil {
+		t.Fatal("Error should not be nil")
 	}
 }
