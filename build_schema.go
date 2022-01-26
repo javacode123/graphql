@@ -392,8 +392,8 @@ func (c *SchemaConfigBuilder) buildInterfacesThunk(node *ast.ObjectDefinition) I
 					// InterfaceThunks do not return errors, so panic here
 					panic(err)
 				}
-				if convertedInterface, ok := namedInterface.(Interface); ok {
-					interfaces = append(interfaces, &convertedInterface)
+				if convertedInterface, ok := namedInterface.(*Interface); ok {
+					interfaces = append(interfaces, convertedInterface)
 				}
 			}
 		}

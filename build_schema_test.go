@@ -477,10 +477,20 @@ func TestUnreferencedTypeImplementingReferencedInterface(t *testing.T) {
 	  }
   `
 
-	_, err := graphql.BuildSchema(sdl)
+	schema, err := graphql.BuildSchema(sdl)
 	if err != nil {
 		t.Fatalf("Unexpected error %s", err.Error())
 	}
+
+	ttype := schema.Type("Concrete")
+	if ttype, ok := ttype.(*graphql.Object); !ok {
+		t.Fatalf("Concrete is not an Object type")
+	} else {
+		if len(ttype.Interfaces()) != 1 {
+			t.Fatalf("Concrete has %v interfaces", len(ttype.Interfaces()))
+		}
+	}
+
 }
 
 func TestUnreferencedInterfaceImplementingReferencedInterface(t *testing.T) {
