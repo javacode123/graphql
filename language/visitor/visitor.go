@@ -2,6 +2,7 @@ package visitor
 
 import (
 	"encoding/json"
+	"github.com/fatih/structs"
 	"reflect"
 
 	"github.com/graphql-go/graphql/language/ast"
@@ -442,18 +443,46 @@ func removeNodeByIndex(a []interface{}, pos int) []interface{} {
 	return append(a[:pos], a[pos+1:]...)
 }
 
+//func convertMap(src interface{}) (dest map[string]interface{}, err error) {
+//	if src == nil {
+//		return
+//	}
+//	var bts []byte
+//	if bts, err = json.Marshal(src); err != nil {
+//		return
+//	}
+//	if err = json.Unmarshal(bts, &dest); err != nil {
+//		return
+//	}
+//	return
+//}
+
 func convertMap(src interface{}) (dest map[string]interface{}, err error) {
+
 	if src == nil {
 		return
 	}
-	var bts []byte
-	if bts, err = json.Marshal(src); err != nil {
+
+	defer func() {
+		if err := recover(); err != nil {
+			var bts []byte
+			if bts, err = json.Marshal(src); err != nil {
+				return
+			}
+			if err = json.Unmarshal(bts, &dest); err != nil {
+				return
+			}
+			return
+		}
+	}()
+
+	if d, ok := src.(map[string]interface{}); ok {
+		dest = d
 		return
 	}
-	if err = json.Unmarshal(bts, &dest); err != nil {
-		return
-	}
-	return
+
+	dest = structs.Map(src)
+	return dest, nil
 }
 
 // get value by key from struct | slice | map | wrap(prev)
