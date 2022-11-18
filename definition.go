@@ -282,7 +282,7 @@ func (st *Scalar) ParseValue(value interface{}) interface{} {
 }
 func (st *Scalar) ParseLiteral(valueAST ast.Value) interface{} {
 	if st.scalarConfig.ParseLiteral == nil {
-		return nil
+		return valueFromASTUntyped(valueAST, map[string]interface{}{})
 	}
 	return st.scalarConfig.ParseLiteral(valueAST)
 }
@@ -1319,4 +1319,27 @@ func (p *ResponsePath) AsArray() []interface{} {
 		return nil
 	}
 	return append(p.Prev.AsArray(), p.Key)
+}
+
+func GetIntrospectionTypes() []Type {
+	return []Type{
+		SchemaType,
+		DirectiveType,
+		DirectiveLocationEnumType,
+		TypeType,
+		FieldType,
+		InputValueType,
+		EnumValueType,
+		TypeKindEnumType,
+	}
+}
+
+func getSpecifiedScalarTypes() []Type {
+	return []Type{
+		String,
+		Int,
+		Float,
+		Boolean,
+		ID,
+	}
 }

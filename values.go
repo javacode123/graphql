@@ -6,6 +6,7 @@ import (
 	"math"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/graphql-go/graphql/gqlerrors"
@@ -409,6 +410,85 @@ func valueFromAST(valueAST ast.Value, ttype Input, variables map[string]interfac
 		return ttype.ParseLiteral(valueAST)
 	}
 
+	return nil
+}
+
+/**
+ * Produces a value given a GraphQL Value AST.
+ *
+ * Unlike `valueFromAST()`, no type is provided. The resulting value
+ * will reflect the provided GraphQL value AST.
+ *
+ * | GraphQL Value        | JavaScript Value |
+ * | -------------------- | ---------------- |
+ * | Input Object         | Object           |
+ * | List                 | Array            |
+ * | Boolean              | Boolean          |
+ * | String / Enum        | String           |
+ * | Int / Float          | Number           |
+ * | Null                 | null             |
+ *
+ */
+func valueFromASTUntyped(valueAST ast.Value, variables map[string]interface{}) interface{} {
+	if valueAST == nil {
+		return nil
+	}
+
+	switch valueAST.GetKind() {
+	case kinds.IntValue:
+		if v, ok := valueAST.(*ast.IntValue); ok {
+			intValue, err := strconv.Atoi(v.Value)
+			if err == nil {
+				return intValue
+			}
+		}
+		return nil
+	case kinds.FloatValue:
+		if v, ok := valueAST.(*ast.FloatValue); ok {
+			floatValue, err := strconv.ParseFloat(v.Value, 64)
+			if err == nil {
+				return floatValue
+			}
+		}
+		return nil
+	case kinds.StringValue:
+	case kinds.EnumValue:
+	case kinds.BooleanValue:
+		return valueAST.GetValue()
+	case kinds.ListValue:
+		values := []interface{}{}
+		if v, ok := valueAST.(*ast.ListValue); ok {
+			for _, itemAST := range v.Values {
+				values = append(values, valueFromASTUntyped(itemAST, variables))
+			}
+			return values
+		}
+		return nil
+	case kinds.ObjectValue:
+		var (
+			ok bool
+			ov *ast.ObjectValue
+		)
+		if ov, ok = valueAST.(*ast.ObjectValue); !ok {
+			return nil
+		}
+		objectValues := map[string]interface{}{}
+		for _, objectField := range ov.Fields {
+			if objectField == nil || objectField.Name == nil {
+				continue
+			}
+			objectValues[objectField.Name.Value] = valueFromASTUntyped(objectField.Value, variables)
+		}
+		return objectValues
+	case kinds.Variable:
+		if valueAST, ok := valueAST.(*ast.Variable); ok {
+			if valueAST.Name == nil || variables == nil {
+				return nil
+			}
+			return variables[valueAST.Name.Value]
+		}
+		return nil
+	}
 	return nil
 }
 

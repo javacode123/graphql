@@ -146,3 +146,21 @@ var DeprecatedDirective = NewDirective(DirectiveConfig{
 		DirectiveLocationEnumValue,
 	},
 })
+
+// TODO (ECO-3255): This directive is in graphql-js as a standard/specified directive, so we should
+// investigate adding it to graphql-go's corresponding graphql.SpecifiedDirectives list
+var SpecifiedByDirective = NewDirective(DirectiveConfig{
+	Name:        "specifiedBy",
+	Description: "Exposes a URL that specifies the behaviour of this scalar.",
+	Args: FieldConfigArgument{
+		"url": &ArgumentConfig{
+			Type: NewNonNull(String),
+			Description: "Explains why this element was deprecated, usually also including a " +
+				"suggestion for how to access supported similar data. Formatted" +
+				"in [Markdown](https://daringfireball.net/projects/markdown/).",
+		},
+	},
+	Locations: []string{
+		DirectiveLocationScalar,
+	},
+})
