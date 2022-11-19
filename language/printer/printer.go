@@ -59,6 +59,10 @@ func getMapValueString(m map[string]interface{}, key string) string {
 		if v == nil {
 			return ""
 		}
+		// TODO  这里是我自己加的
+		if v == "<nil>" {
+			return ""
+		}
 		switch v := v.(type) {
 		case map[string]interface{}:
 			valMap = v
@@ -66,6 +70,11 @@ func getMapValueString(m map[string]interface{}, key string) string {
 		case string:
 			return v
 		default:
+			// TODO 改动
+			result := fmt.Sprintf("%v", v)
+			if result == "<nil>" {
+				return ""
+			}
 			return fmt.Sprintf("%v", v)
 		}
 	}
