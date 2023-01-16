@@ -165,6 +165,7 @@ func (c *SchemaConfigBuilder) buildSchemaConfig(documentAST *ast.Document) (*Sch
 				schemaConfig.Subscription = objectType
 			}
 		}
+
 	}
 
 	// If there is a top-level schema definition, replace the Query/Mutation/Subscription types with those specified
