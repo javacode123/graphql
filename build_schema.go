@@ -160,8 +160,11 @@ func (c *SchemaConfigBuilder) buildSchemaConfig(documentAST *ast.Document) (*Sch
 			if objectType, ok := ttype.(*Object); ok {
 				schemaConfig.Mutation = objectType
 			}
+		} else if name == "Subscription" {
+			if objectType, ok := ttype.(*Object); ok {
+				schemaConfig.Subscription = objectType
+			}
 		}
-		// TODO (ECO-3254): Add subscriptions (not urgent because subscriptions are not in federation and we don't use them at Square)
 	}
 
 	// If there is a top-level schema definition, replace the Query/Mutation/Subscription types with those specified
